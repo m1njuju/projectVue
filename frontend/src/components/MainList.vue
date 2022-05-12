@@ -43,11 +43,7 @@ export default {
         "mdi-emoticon-sad-outline",
         "mdi-emoticon-angry-outline",
       ],
-      memo: [
-        {
-          img: "",
-        },
-      ],
+      memo: [],
       imagelist: [],
       imagecnt: 0,
     };

@@ -59,6 +59,13 @@ const routes = [
       return import("../components/SettingPage.vue");
     },
   },
+  {
+    path: "/register",
+    name: "register",
+    component: function () {
+      return import("../views/RegisterView.vue");
+    },
+  },
 ];
 
 const router = new VueRouter({

@@ -17,14 +17,11 @@
       <v-spacer></v-spacer>
 
       <!--툴바 메뉴 -->
-      <v-toolbar-title
-        v-model="user"
-        v-if="login"
-        class="caption hidden-xs-only"
-        >{{ user }}님 환영합니다</v-toolbar-title
+      <v-toolbar-title v-if="fnGetAuthStatus" class="caption hidden-xs-only"
+        >{{ fnGetNickname }}님 환영합니다</v-toolbar-title
       >
 
-      <div v-if="login">
+      <div v-if="fnGetAuthStatus">
         <!-- 날짜 선택으로 검색할 수 있게 -->
         <v-menu
           bottom
@@ -98,7 +95,7 @@
             </v-list-item-avatar>
 
             <v-list-item-content>
-              <v-list-item-title> {{ user }} 님</v-list-item-title>
+              <v-list-item-title> {{ fnGetNickname }} 님</v-list-item-title>
               <v-list-item-subtitle>
                 {{ new Date().toLocaleString() }}
               </v-list-item-subtitle>
@@ -121,7 +118,7 @@
         </v-list-item>
 
         <!-- 로그인이 된 경우에만 로그아웃 버튼 표시 -->
-        <v-list-item v-if="login">
+        <v-list-item @click="fnDoLogout" v-if="fnGetAuthStatus">
           <v-list-item-action>
             <v-icon>mdi-arrow-right-bold-box-outline</v-icon>
           </v-list-item-action>
@@ -129,7 +126,7 @@
         </v-list-item>
 
         <!-- 로그인이 된 경우에만 회원탈퇴 버튼 표시 -->
-        <v-list-item v-if="login">
+        <v-list-item @click="fnDoDelete" v-if="fnGetAuthStatus">
           <v-list-item-action>
             <v-icon>mdi-arrow-right-bold-box</v-icon>
           </v-list-item-action>
@@ -152,7 +149,7 @@ export default {
   },
   data: function () {
     return {
-      user: "",
+      memo: {},
       login: false,
       ndrawer: false,
       items: [
@@ -174,17 +171,18 @@ export default {
     };
   },
   mounted() {
-    this.arrayEvents = [...Array(6)].map(() => {
-      const day = Math.floor(Math.random() * 30);
+    this.arrayEvents = [...Array()].map(() => {
+      const day = this.memo.date; //Math.floor(Math.random() * 30);
+      console.log(this.memo.date);
       const d = new Date();
       d.setDate(day);
+      console.log(d);
       return d.toISOString().substr(0, 10);
     });
   },
   created() {
-    this.$EventBus.$on("login-user", (user) => {
-      this.user = user;
-      this.login = true;
+    this.$http.get("/api/memo").then((response) => {
+      this.memo = response.data;
     });
   },
   methods: {
@@ -201,20 +199,26 @@ export default {
       this.toggle = !this.toggle;
       this.$router.push("/");
     },
-    functionEvents(date) {
-      const [, , day] = date.split("-");
-      if ([12, 17, 28].includes(parseInt(day, 10))) return true;
-      if ([1, 19, 22].includes(parseInt(day, 10))) return ["red", "#00f"];
-      return false;
-    },
     path() {
       this.items[0].to = `/about/${this.user}`;
+    },
+    fnDoLogout() {
+      this.$store.dispatch("fnDoLogout");
+    },
+    fnDoDelete() {
+      this.$store.dispatch("fnDoDelete");
     },
   },
   updated() {
     this.path();
   },
   computed: {
+    fnGetNickname() {
+      return this.$store.getters.fnGetNickname;
+    },
+    fnGetAuthStatus() {
+      return this.$store.getters.fnGetAuthStatus;
+    },
     // 로그인 여부에 따라 다르게 배열 반환
     fnGetMenuItems() {
       if (!this.login) {
